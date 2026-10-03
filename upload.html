@@ -66,7 +66,7 @@
      只申请 <code>user.info.basic</code>、<code>video.upload</code>、<code>video.publish</code>，不申请 Display API。</p>
   <div class="cfg">
     <label>应用 Client Key（开发者门户 → 证书）</label>
-    <input id="ck" placeholder="awxxxxxxxxxxxxxxxx">
+    <input id="ck" value="sbawgg46ctwls001g8" placeholder="awxxxxxxxxxxxxxxxx">
     <label>授权回调地址（Redirect URI）</label>
     <input id="ru" value="">
     <label>沙盒 / 生产</label>
@@ -131,6 +131,7 @@ function log(s){
 window.addEventListener('load', ()=>{ LOG.textContent='等待操作…'; });
 
 const HOST   = 'https://open.tiktokapis.com';
+const AUTH   = 'https://www.tiktok.com/v2/auth/authorize/';
 const CK     = document.getElementById('ck');
 const RU     = document.getElementById('ru');
 const ENV    = document.getElementById('env');
@@ -147,7 +148,7 @@ const TOKEN_KEY = 'bw.tiktok.access_token';
 /* ---------- 步骤 1：OAuth ---------- */
 document.getElementById('btnAuth').onclick = () => {
   if(!CK.value.trim()){ log('未填 Client Key —— 进入演示模式'); demoToken(); return; }
-  const url = `${HOST}/v2/oauth/authorize/`
+  const url = AUTH
     + `?client_key=${encodeURIComponent(CK.value.trim())}`
     + `&redirect_uri=${encodeURIComponent(RU.value)}`
     + `&response_type=code`

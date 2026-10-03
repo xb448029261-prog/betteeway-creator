@@ -50,21 +50,30 @@
     return;
   }
 
-  // 后端代理存在时走它换 token；否则把 code 交给上传页继续处理
-  if(finish(localStorage.getItem('bw.tiktok.access_token'))) return;
-
-  fetch('./exchange', {method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({code:q.get('code')})})
-    .then(function(r){ return r.json(); })
-    .then(function(j){ finish(j && j.access_token); })
-    .catch(function(){})
-    .then(function(){
-      if(localStorage.getItem('bw.tiktok.access_token')) return;
+  // 先把本次回调拿到的 code 交给后端代理换 token；
+  // 没有代理时，把 code 原样带回上传页处理（绝不能因为本地已有旧 token 就跳过本次 code）
+  var code = q.get('code');
+  if(code){
+    localStorage.setItem('bw.tiktok.oauth_code', code);
+    if(fetch('./exchange', {method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({code:code})})
+        .then(function(r){ return r.ok ? r.json() : null; })
+        .then(function(j){ return j && j.access_token ? j : null; })
+        .then(function(j){ finish(j && j.access_token); })
+        .catch(function(){})){
       t.textContent = '授权码已收到';
       m.innerHTML = '正在返回上传工具完成授权…';
       setTimeout(function(){ location.replace('upload.html?code='
-        +encodeURIComponent(q.get('code')||'')); }, 700);
-    });
+        +encodeURIComponent(code)); }, 700);
+      return;
+    }
+  }
+
+  if(finish(localStorage.getItem('bw.tiktok.access_token'))) return;
+
+  t.textContent = '授权未完成';
+  m.innerHTML = '没有收到授权码，请返回上传工具重新发起授权。';
+  back.style.display = 'block';
 })();
 </script>
 </body>
