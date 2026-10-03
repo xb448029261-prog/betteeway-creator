@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>授权回调 · Bettee Way Creator</title>
+<style>
+  body{margin:0;font:16px/1.8 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+       color:#16181d;background:#fff;display:flex;min-height:100vh;align-items:center;justify-content:center}
+  .card{max-width:460px;margin:24px;padding:30px 32px;border:1px solid #e8e9ed;border-radius:12px;text-align:center}
+  h1{font-size:20px;margin:0 0 10px}
+  p{color:#6b7280;margin:0 0 18px;font-size:15px}
+  a{display:inline-block;padding:11px 22px;border-radius:8px;background:#16181d;color:#fff;
+    text-decoration:none;font-weight:600}
+  code{background:#f4f5f7;border:1px solid #e8e9ed;border-radius:4px;padding:1px 6px;font-size:13px}
+  .s{color:#12b76a;font-weight:600}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1 id="t">正在完成授权…</h1>
+  <p id="m">正在把授权结果交回上传工具，请稍候。</p>
+  <p style="display:none" id="back"><a href="upload.html">返回上传工具</a></p>
+</div>
+<script>
+/* OAuth 回调：把拿到的凭据交给上传页，并按需经自建后端换取 access_token。
+   生产环境 client_secret 只在后端使用，前端不持有。 */
+(function(){
+  var q   = new URLSearchParams(location.search);
+  var t   = document.getElementById('t');
+  var m   = document.getElementById('m');
+  var back= document.getElementById('back');
+
+  function finish(token){
+    if(token){
+      localStorage.setItem('bw.tiktok.access_token', token);
+      t.textContent = '授权成功';
+      m.innerHTML = '账号已连接，正在返回上传工具…';
+      setTimeout(function(){ location.replace('upload.html'); }, 900);
+      return true;
+    }
+    return false;
+  }
+
+  if(q.get('error')){
+    t.textContent = '授权未完成';
+    m.innerHTML = 'TikTok 返回：<code>'+q.get('error')+'</code>'
+      + (q.get('error_description')?'（'+q.get('error_description')+'）':'');
+    back.style.display = 'block';
+    return;
+  }
+
+  // 后端代理存在时走它换 token；否则把 code 交给上传页继续处理
+  if(finish(localStorage.getItem('bw.tiktok.access_token'))) return;
+
+  fetch('./exchange', {method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({code:q.get('code')})})
+    .then(function(r){ return r.json(); })
+    .then(function(j){ finish(j && j.access_token); })
+    .catch(function(){})
+    .then(function(){
+      if(localStorage.getItem('bw.tiktok.access_token')) return;
+      t.textContent = '授权码已收到';
+      m.innerHTML = '正在返回上传工具完成授权…';
+      setTimeout(function(){ location.replace('upload.html?code='
+        +encodeURIComponent(q.get('code')||'')); }, 700);
+    });
+})();
+</script>
+</body>
+</html>

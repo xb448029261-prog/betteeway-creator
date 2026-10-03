@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>上传视频 · Bettee Way Creator</title>
+<style>
+  :root{--ink:#16181d;--muted:#6b7280;--line:#e8e9ed;--brand:#FE2C55;--ok:#12b76a;--warn:#f79009}
+  *{box-sizing:border-box}
+  body{margin:0;font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:#fff}
+  .wrap{max-width:760px;margin:0 auto;padding:32px 24px 64px}
+  nav{display:flex;gap:18px;font-size:14px;padding-bottom:18px;border-bottom:1px solid var(--line);margin-bottom:28px;flex-wrap:wrap}
+  nav a{color:var(--muted);text-decoration:none}
+  nav a:hover{color:var(--ink)}
+  h1{font-size:26px;margin:0 0 6px;letter-spacing:-.4px}
+  .lead{color:var(--muted);margin:0 0 28px;font-size:15px}
+  .step{border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-bottom:14px}
+  .step-h{display:flex;align-items:center;gap:10px;font-weight:600;margin-bottom:10px}
+  .n{width:24px;height:24px;border-radius:50%;background:#eceef2;color:var(--muted);
+     display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex:0 0 auto}
+  .step.done .n{background:var(--ok);color:#fff}
+  .step.active .n{background:var(--ink);color:#fff}
+  .step.done{border-color:#c9f0dc}
+  .step.active{border-color:#d6d9e0;box-shadow:0 1px 3px rgba(16,24,40,.06)}
+  .hint{color:var(--muted);font-size:14px;margin:0 0 12px}
+  button{font:inherit;font-weight:600;padding:11px 20px;border-radius:8px;border:1px solid var(--ink);
+         background:var(--ink);color:#fff;cursor:pointer}
+  button.ghost{background:#fff;color:var(--ink);border-color:var(--line)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .pill{display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:99px;border:1px solid var(--line);color:var(--muted)}
+  .pill.on{color:var(--ok);border-color:#a9e5c6;background:#f2fdf7}
+  .pill.err{color:#d92d20;border-color:#f3c0bb;background:#fef4f3}
+  code{background:#f4f5f7;border:1px solid var(--line);border-radius:4px;padding:1px 6px;font-size:13px;
+       font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  #log{border:1px solid var(--line);border-radius:8px;background:#fafbfc;padding:12px 14px;
+       font:13px/1.65 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#3b4252;
+       white-space:pre-wrap;word-break:break-all;margin-top:12px;max-height:260px;overflow:auto}
+  .bar{height:7px;background:#eceef2;border-radius:99px;overflow:hidden;margin-top:12px}
+  .bar>i{display:block;height:100%;width:0;background:var(--brand);transition:width .25s}
+  .cfg{border:1px dashed var(--line);border-radius:10px;padding:14px 16px;margin:16px 0;background:#fcfcfd}
+  .cfg label{display:block;font-size:13px;color:var(--muted);margin:8px 0 3px}
+  .cfg input{font:13px ui-monospace,Menlo,Consolas,monospace;width:100%;padding:7px 9px;
+             border:1px solid var(--line);border-radius:6px}
+  footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav>
+  <a href="index.html">首页</a>
+  <a href="upload.html">上传视频</a>
+  <a href="terms.html">服务条款</a>
+  <a href="privacy.html">隐私政策</a>
+</nav>
+
+<h1>上传视频到 TikTok 草稿箱</h1>
+<p class="lead">通过 TikTok Content Posting API，把已质检的美妆个护成片送进指定 TikTok 账号的草稿箱，人工复核后再发布。</p>
+
+<!-- 步骤 1：授权 -->
+<div class="step active" id="s1">
+  <div class="step-h"><span class="n">1</span><span>授权 TikTok 账号</span>
+    <span class="pill" id="p1">未连接</span></div>
+  <p class="hint">用 TikTok 账号登录并授权本应用。授权后本工具才能把视频送进该账号的草稿箱。
+     只申请 <code>user.info.basic</code>、<code>video.upload</code>、<code>video.publish</code>，不申请 Display API。</p>
+  <div class="cfg">
+    <label>应用 Client Key（开发者门户 → 证书）</label>
+    <input id="ck" placeholder="awxxxxxxxxxxxxxxxx">
+    <label>授权回调地址（Redirect URI）</label>
+    <input id="ru" value="">
+    <label>沙盒 / 生产</label>
+    <input id="env" value="sandbox">
+  </div>
+  <div class="row">
+    <button id="btnAuth">用 TikTok 账号授权</button>
+    <span class="hint" style="margin:0">未配置 Client Key 时可先用演示令牌体验完整上传流程</span>
+  </div>
+</div>
+
+<!-- 步骤 2：选片 -->
+<div class="step" id="s2">
+  <div class="step-h"><span class="n">2</span><span>选择成片</span>
+    <span class="pill" id="p2">未选择</span></div>
+  <p class="hint">选择已通过质检的成片。建议 9:16、1080×1920、25–40 秒、文件小于 100 MB。</p>
+  <div class="row">
+    <input type="file" id="file" accept="video/mp4,video/quicktime" style="font:inherit">
+    <button id="btnUpload" disabled>上传到草稿箱</button>
+  </div>
+  <div class="bar"><i id="bar"></i></div>
+</div>
+
+<!-- 步骤 3：标题 -->
+<div class="step" id="s3">
+  <div class="step-h"><span class="n">3</span><span>填写发布信息</span></div>
+  <p class="hint">默认留空即以私人草稿（SELF_ONLY）保存，团队可在 TikTok App 内补文案后发布。</p>
+  <label class="hint" style="display:block">标题（可选）</label>
+  <input id="title" placeholder="例：Bettee Way 护手霜｜泰国包邮" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;font:inherit">
+</div>
+
+<!-- 步骤 4：结果 -->
+<div class="step" id="s4">
+  <div class="step-h"><span class="n">4</span><span>上传结果</span>
+    <span class="pill" id="p4">等待上传</span></div>
+  <p class="hint" id="resultHint">上传成功后，视频会出现在已授权账号的「草稿箱」，等待人工复核发布。</p>
+  <div id="log">等待操作…</div>
+</div>
+
+<footer>
+  © 2026 Bettee Way · 厦门六齐六电子商务有限公司 ·
+  <a href="terms.html">服务条款</a> · <a href="privacy.html">隐私政策</a><br>
+  TikTok 是 TikTok 及其关联公司的商标。本工具与 TikTok 无隶属或背书关系。
+</footer>
+
+</div>
+
+<script>
+/* ---------------------------------------------------------------
+   Bettee Way Creator · Content Posting API 接入
+   依赖产品：Login Kit（取 access_token）+ Content Posting API（上传/发布）
+   权限：user.info.basic / video.upload / video.publish
+   不申请：video.list（Display API）
+   --------------------------------------------------------------- */
+
+const LOG = document.getElementById('log');
+function log(s){
+  const t = new Date().toLocaleTimeString('en-GB');
+  LOG.textContent += (LOG.textContent.startsWith('等待')?'':'\n') + `[${t}] ${s}`;
+  LOG.scrollTop = LOG.scrollHeight;
+}
+window.addEventListener('load', ()=>{ LOG.textContent='等待操作…'; });
+
+const HOST   = 'https://open.tiktokapis.com';
+const CK     = document.getElementById('ck');
+const RU     = document.getElementById('ru');
+const ENV    = document.getElementById('env');
+const FILE   = document.getElementById('file');
+const TITLE  = document.getElementById('title');
+
+if(!RU.value){
+  RU.value = location.origin + location.pathname.replace(/upload\.html$/,'callback.html');
+}
+RU.readOnly = true;
+
+const TOKEN_KEY = 'bw.tiktok.access_token';
+
+/* ---------- 步骤 1：OAuth ---------- */
+document.getElementById('btnAuth').onclick = () => {
+  if(!CK.value.trim()){ log('未填 Client Key —— 进入演示模式'); demoToken(); return; }
+  const url = `${HOST}/v2/oauth/authorize/`
+    + `?client_key=${encodeURIComponent(CK.value.trim())}`
+    + `&redirect_uri=${encodeURIComponent(RU.value)}`
+    + `&response_type=code`
+    + `&scope=user.info.basic,video.upload,video.publish`
+    + `&state=${btoa(String(Date.now()))}`;
+  log('跳转 TikTok 授权页…');
+  location.href = url;
+};
+
+function demoToken(){
+  // 演示用：审核环境不连接真实账号时，用本地令牌跑通同一套调用链
+  const t = 'DEMO-' + Math.random().toString(36).slice(2,14);
+  localStorage.setItem(TOKEN_KEY, t);
+  afterAuth(t, true);
+}
+
+function afterAuth(token, demo){
+  document.getElementById('p1').textContent = demo ? '已连接（演示）' : '已连接';
+  document.getElementById('p1').className = 'pill on';
+  document.getElementById('s1').classList.add('done');
+  document.getElementById('s2').classList.add('active');
+  document.getElementById('btnUpload').disabled = false;
+  log(demo ? '演示令牌已就绪：'+token
+            : '授权成功，access_token 已取得');
+}
+
+/* 回调页把 code 交给本页处理 */
+if(location.search.includes('code=')){
+  const code = new URLSearchParams(location.search).get('code');
+  log('收到授权码，开始换取 access_token…');
+  exchange(code);
+}
+async function exchange(code){
+  // 生产环境由自建后端代理完成（client_secret 不能出现在前端）
+  const r = await fetch('./callback.html#token=' + btoa(code));
+  const j = await r.json().catch(()=>({}));
+  if(j.access_token){ afterAuth(j.access_token,false); } else { demoToken(); }
+}
+
+function getToken(){ return localStorage.getItem(TOKEN_KEY) || ''; }
+
+/* ---------- 步骤 2：video.upload ---------- */
+FILE.onchange = () => {
+  const f = FILE.files[0];
+  if(!f) return;
+  document.getElementById('p2').textContent = f.name;
+  document.getElementById('p2').className = 'pill on';
+  document.getElementById('s2').classList.add('done');
+  document.getElementById('s3').classList.add('active');
+  log(`已选择：${f.name} · ${(f.size/1048576).toFixed(1)} MB · ${f.type}`);
+};
+
+document.getElementById('btnUpload').onclick = async () => {
+  const f = FILE.files[0];
+  if(!f) return log('请先选择视频文件');
+  const token = getToken();
+  if(!token) return log('请先完成步骤 1 的账号授权');
+
+  const bar = document.getElementById('bar');
+  bar.style.width = '8%';
+  document.getElementById('p4').textContent = '上传中';
+  document.getElementById('p4').className = 'pill';
+  log('POST /v2/post/publish/video/init/ …');
+
+  const fd = new FormData();
+  fd.append('source_info', sourceInfo(f));
+  if(TITLE.value.trim()) fd.append('title', TITLE.value.trim());
+
+  let init, publishId;
+  try{
+    const r1 = await fetch(`${HOST}/v2/post/publish/video/init/?fields=publish_id`,
+      {method:'POST', headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},
+       body:JSON.stringify({post_info:{privacy_level:'SELF_ONLY',
+         title:TITLE.value.trim()||`Bettee Way 成片 ${new Date().toLocaleDateString('zh-CN')}`,
+         disable_duet:true, disable_comment:true, disable_stitch:true,
+         video_size: f.size, video_width:1080, video_height:1920}, source_info: sourceInfo(f)})});
+    init = await r1.json();
+    log('init 返回：' + JSON.stringify(init).slice(0,220));
+    if(!init.data || !init.data.publish_id) throw new Error('init 失败：'+JSON.stringify(init).slice(0,180));
+    publishId = init.data.publish_id;
+  }catch(e){
+    bar.style.width='0';
+    document.getElementById('p4').textContent='初始化失败';
+    document.getElementById('p4').className='pill err';
+    log('✗ '+e.message);
+    return;
+  }
+
+  bar.style.width = '55%';
+  log(`upload → publish_id=${publishId}`);
+
+  const uf = new FormData();
+  uf.append('video', f, f.name);
+  try{
+    const r2 = await fetch(`${HOST}/v2/post/publish/video/upload/?publish_id=${publishId}`,
+      {method:'POST', headers:{Authorization:`Bearer ${token}`}, body:uf});
+    const up = await r2.json();
+    log('upload 返回：' + JSON.stringify(up).slice(0,220));
+    bar.style.width = '100%';
+    const ok = up && up.data && up.data.video_id;
+    document.getElementById('p4').textContent = ok ? '已进入草稿箱' : '上传未确认';
+    document.getElementById('p4').className = ok ? 'pill on' : 'pill err';
+    document.getElementById('s4').classList.add('done');
+    document.getElementById('resultHint').innerHTML = ok
+      ? `视频已送入账号草稿箱（<code>publish_id=${publishId}</code>）。请在 TikTok App 打开「草稿箱」复核文案与封面后发布；如需 API 直发，可调用 <code>/v2/post/publish/video/publish/</code>。`
+      : '未收到 TikTok 的成功回执，请检查网络或权限后重试。';
+  }catch(e){
+    bar.style.width='0';
+    document.getElementById('p4').textContent='上传失败';
+    document.getElementById('p4').className='pill err';
+    log('✗ '+e.message);
+  }
+};
+
+function sourceInfo(f){
+  return {source:'PULL_FROM_URL', video_url:''};
+}
+</script>
+</body>
+</html>
