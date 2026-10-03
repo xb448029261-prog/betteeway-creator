@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bettee Way Creator · 内部内容工具</title>
+<style>
+  :root{--ink:#16181d;--muted:#6b7280;--line:#e8e9ed;--brand:#FE2C55;--bg:#fff}
+  *{box-sizing:border-box}
+  body{margin:0;font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:var(--bg)}
+  .wrap{max-width:880px;margin:0 auto;padding:40px 24px 72px}
+  nav{display:flex;gap:20px;font-size:14px;padding-bottom:22px;border-bottom:1px solid var(--line);margin-bottom:36px}
+  nav a{color:var(--muted);text-decoration:none}
+  nav a:hover{color:var(--ink)}
+  .pill{display:inline-block;font-size:12px;font-weight:600;letter-spacing:.4px;color:var(--brand);border:1px solid var(--brand);border-radius:99px;padding:3px 11px;margin-bottom:14px}
+  h1{font-size:34px;line-height:1.25;margin:0 0 12px;letter-spacing:-.6px}
+  .lead{font-size:18px;color:var(--muted);margin:0 0 34px}
+  .card{border:1px solid var(--line);border-radius:12px;padding:22px 24px;margin-bottom:16px}
+  .card h2{font-size:17px;margin:0 0 8px}
+  .card p{margin:0;color:var(--muted);font-size:15px}
+  h3.sect{font-size:14px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin:44px 0 16px;font-weight:600}
+  ol.steps{counter-reset:s;list-style:none;padding:0;margin:0}
+  ol.steps li{counter-increment:s;position:relative;padding:0 0 16px 44px;margin:0}
+  ol.steps li::before{content:counter(s);position:absolute;left:0;top:1px;width:28px;height:28px;border-radius:50%;
+    background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600}
+  ol.steps li b{display:block;font-size:16px;margin-bottom:2px}
+  ol.steps li span{color:var(--muted);font-size:15px}
+  code{background:#f4f5f7;border:1px solid var(--line);border-radius:4px;padding:1px 6px;font-size:13.5px;
+       font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  .note{background:#fff8f9;border:1px solid #ffd6de;border-radius:12px;padding:18px 22px;margin:26px 0}
+  .note p{margin:0 0 8px;font-size:15px}
+  .note p:last-child{margin:0}
+  footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+  footer a{color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav>
+  <a href="index.html">首页</a>
+  <a href="terms.html">服务条款</a>
+  <a href="privacy.html">隐私政策</a>
+</nav>
+
+<span class="pill">仅供内部授权人员使用</span>
+<h1>Bettee Way Creator</h1>
+<p class="lead">面向 Bettee Way 美妆个护业务的内部短视频内容工具。通过 TikTok Content Posting API，将成片上传至已授权 TikTok 账号的草稿箱，供人工复核后发布。</p>
+
+<h3 class="sect">这个工具做什么</h3>
+<div class="card">
+  <h2>① 上传成片到草稿箱</h2>
+  <p>调用 Content Posting API 的 <code>video.upload</code>，将本地成片传入授权账号的草稿箱（SELF_ONLY），不会自动对外发布。</p>
+</div>
+<div class="card">
+  <h2>② 人工复核后发布</h2>
+  <p>团队在 TikTok 应用内查看草稿、确认品牌与价格无误后手动发布；如需 API 直发，使用 <code>video.publish</code>。</p>
+</div>
+<div class="card">
+  <h2>③ 内容合规自检</h2>
+  <p>上传前核对封面取自真实视频帧、品牌名与所挂商品一致、价格与定价表一致，避免货不对板与虚假宣称。</p>
+</div>
+
+<h3 class="sect">端到端流程</h3>
+<ol class="steps">
+  <li><b>授权 TikTok 账号</b><span>通过 TikTok 官方授权流程，将目标创作者账号授权给本应用。</span></li>
+  <li><b>选择成片</b><span>在本工具界面选择已通过质检的 mp4 视频文件。</span></li>
+  <li><b>上传到草稿箱</b><span>调用 <code>video.upload</code>，视频进入该账号草稿箱。</span></li>
+  <li><b>人工复核</b><span>在 TikTok 应用内查看成片，确认品牌、价格、文案无误。</span></li>
+  <li><b>发布</b><span>人工点击发布，或调用 <code>video.publish</code> 完成发布。</span></li>
+</ol>
+
+<div class="note">
+  <p><b>关于数据：</b>本服务仅上传本企业自有素材，<b>不接入 Display API</b>，不读取、不存储任何 TikTok 端用户的个人资料或粉丝数据。</p>
+  <p><b>关于发布：</b>所有视频默认进入草稿箱，经人工复核后发布；本服务不会自动对外发布内容。</p>
+</div>
+
+<h3 class="sect">服务条款</h3>
+<div class="card">
+  <h2>使用前请阅读</h2>
+  <p>本工具仅向经授权的企业内部人员开放。使用即表示您同意我们的
+    <a href="terms.html">服务条款</a> 与 <a href="privacy.html">隐私政策</a>。</p>
+</div>
+
+<footer>
+  © 2026 Bettee Way · 厦门六齐六电子商务有限公司 ·
+  <a href="terms.html">服务条款</a> ·
+  <a href="privacy.html">隐私政策</a><br>
+  TikTok 是 TikTok 及其关联公司的商标。本工具与 TikTok 无隶属或背书关系。
+</footer>
+
+</div>
+</body>
+</html>
