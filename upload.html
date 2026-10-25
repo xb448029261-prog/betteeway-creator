@@ -135,6 +135,9 @@ window.addEventListener('load', ()=>{ if(LOG.textContent.startsWith('等待')) L
 
 const HOST   = 'https://open.tiktokapis.com';
 const AUTH   = 'https://www.tiktok.com/v2/auth/authorize/';
+/* Content Posting API 的 init / status 只允许服务端调用（浏览器 CORS 预检被拒），
+   由应用后端转发；本地演示时后端跑在 localhost:8848 */
+const API_BASE = location.hostname.endsWith('github.io') ? 'http://localhost:8848' : '';
 const CK     = document.getElementById('ck');
 const RU     = document.getElementById('ru');
 const CS     = document.getElementById('cs');
@@ -248,7 +251,7 @@ document.getElementById('btnUpload').onclick = async () => {
 
   let publishId, uploadUrl;
   try{
-    const r1 = await fetch(`${HOST}/v2/post/publish/inbox/video/init/`, {
+    const r1 = await fetch(`${API_BASE}/api/inbox-init`, {
       method:'POST',
       headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},
       body: JSON.stringify({
@@ -294,7 +297,7 @@ document.getElementById('btnUpload').onclick = async () => {
     let st = null;
     for(let i=0;i<6;i++){
       await new Promise(r=>setTimeout(r,1500));
-      const r3 = await fetch(`${HOST}/v2/post/publish/status/fetch/`, {
+      const r3 = await fetch(`${API_BASE}/api/status`, {
         method:'POST',
         headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},
         body: JSON.stringify({publish_id: publishId})
